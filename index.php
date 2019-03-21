@@ -49,7 +49,7 @@ method="post">';
       print '        <button id="login" name="login" type="submit" value="login" class="btn btn-default">Log in</button>';
       print '      </div>';
       print '    </div>';
-      print '        <input id="password_hashed" name="password" class="input-medium" required="">';
+      print '        <input id="password_hashed" name="password" class="input-medium" required="" type="hidden">';
       print '  </fieldset>';
       print '</form>';
       ?>

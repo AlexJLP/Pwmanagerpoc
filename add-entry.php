@@ -20,11 +20,7 @@
     <?php
     ini_set('display_errors', 'On');
     include 'include/functions.php';
-
-    $logged_in = check_signed_in();
-    if (!$logged_in) {
-	    header( 'Location: index.php' ) ;
-    }
+    include 'include/gated.php';
     ?>
     <div class="jumbotron">
       <h1>SSCM User Area</h1>
@@ -33,11 +29,9 @@
     <div class="container">
       <h2>Add new Entry<h2>
         <?php
-        if (isset($_COOKIE['username'], $_COOKIE['session']))
+        if (isset($_COOKIE['username']))
         {
-          if (check_token($_COOKIE['username'], $_COOKIE['session']))
-          {$username = $_COOKIE['username']; }
-          else {$username = "NULL";}
+            $username = $_SESSION['uname'];
         }
         ?>
         <form name="addcont" cla/upanel.phpss="form-horizontal" action="do-add-entry.php" method="post">
@@ -55,11 +49,10 @@
 	            </select> <br>
               <label for="content">Content</label>
               <textarea class="form-control" id="content" rows="3" onchange="encrypt();"></textarea> </br>
-              <input id="encrypted" name="content">
-              <input id="encrypted_ctr" name="ctr">
+              <input id="encrypted" name="content" style="display:none;">
+              <input id="encrypted_ctr" name="ctr" style="display:none;">
               <div class="controls">
                 <button id="submit" name="submit" type="submit" value="submit" class="btn btn-primary">Submit</button>
-                <button id="generate" name="generate" class="btn btn-success">Generate New</button>
               </div>
 
             </div>
@@ -67,10 +60,10 @@
         </form>
     </div>
 
-    <textarea id="key" rows="4"></textarea> <br>
-    <a href="#" onclick="encrypt();">encrypt</a> </br>
+    <textarea id="key" rows="4" style="display:none;"></textarea> <br>
+    <a href="#" onclick="encrypt();" style="display:none;">encrypt</a> </br>
 
-    <textarea id="decrypted" rows="4"></textarea>     <a href="#" onclick="decrypt();">decrypt</a> </br>
+    <textarea id="decrypted" rows="4" style="display:none;"></textarea>     <a href="#" onclick="decrypt();" style="display:none;">decrypt</a> </br>
 
 
 

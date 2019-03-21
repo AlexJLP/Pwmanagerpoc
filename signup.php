@@ -48,7 +48,7 @@ action="do-signup.php" method="post">';
 	    print '        <button id="signup" name="signup" type="submit" value="signup" class="btn btn-default">Sign up</button>';
       print '      </div>';
       print '    </div>';
-      print '        <input id="password_hashed" name="password" class="input-medium" required="">';
+      print '        <input id="password_hashed" name="password" class="input-medium" required="" type="hidden">';
       print '  </fieldset>';
       print '</form>';
       ?>

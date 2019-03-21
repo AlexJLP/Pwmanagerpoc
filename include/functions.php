@@ -65,27 +65,34 @@ function signup($username, $password)
 // Create a session token
 function create_token($username)
 {
+    //start session function
+    session_start();
+    $_SESSION['uname'] = $username;
     setcookie("username", $username);
-    setcookie("session", md5($username));
+    //setcookie("session", md5($username));
+    //setcookie("sessionc", session_id());
 }
 
-// Check a session token
-function check_token($username, $session)
+// Check a session token -- OBSOLETE
+function check_token($username)
 {
-    return (md5($username) == $session);
+    session_start();
+    //return (md5($username) == $session);
+    //return (session_id() == $session);
+    return ($_SESSION['uname'] == $username);
+
 }
 
 // Destroy the session token
 function logout()
 {
+    //session_destroy();
     setcookie("username", "", time()-3600);
-    setcookie("session", "", time()-3600);
+    //setcookie("sessionc", "", time()-3600);
 }
 
 function login($username, $password)
 {
-    logout();
-
     try
     {
      	$db = get_db();
@@ -99,7 +106,7 @@ function login($username, $password)
             return True;
         }
 
-	return False;
+	  return False;
     }
     catch(PDOException $e)
     {
@@ -110,15 +117,14 @@ function login($username, $password)
 // Check if there is a user signed in
 function check_signed_in()
 {
-    if (isset($_COOKIE['username'], $_COOKIE['session']))
+    session_start();
+    if (isset($_COOKIE['username']))
     {
-        if (check_token($_COOKIE['username'], $_COOKIE['session']))
-     	{   return True; }
-        else
-        {
-            logout();
+        if (isset($_SESSION['uname']) && $_SESSION['uname'] == $_COOKIE['username']) {
+            return True;
         }
     }
+    logout();
     return False;
 }
 
@@ -138,7 +144,6 @@ function add_content($username, $title, $content, $type, $ctr)
         $insert->bindParam(':ctr', $ctr);
         $insert->execute();
         print("<p>Inserted Content.</p>");
-
     }
     catch(PDOException $e)
     {

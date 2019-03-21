@@ -8,6 +8,7 @@
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
 
+    <script src="js/localcookie.js"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -19,11 +20,7 @@
     <?php
     ini_set('display_errors', 'On');
     include 'include/functions.php';
-
-    $logged_in = check_signed_in();
-    if (!$logged_in) {
-	    header( 'Location: index.php' ) ;
-    }
+    include 'include/gated.php';
     ?>
     <div class="jumbotron">
       <h1>SSCM User Area</h1>
@@ -32,13 +29,12 @@
     <div class="container">
       <h2>Generate new Entry</h2>
       <?php
-      if (isset($_COOKIE['username'], $_COOKIE['session']))
+      if (isset($_COOKIE['username']))
       {
-        if (check_token($_COOKIE['username'], $_COOKIE['session']))
-        {$username = $_COOKIE['username']; }
-        else {$username = "NULL";}
+      $username = $_SESSION['uname'];
       }
-      ?> <!--  '-->
+      ?>
+
       <div class="panel-group" id="accordion">
         <div class="panel panel-default" id="panel1">
           <div class="panel-heading">
@@ -65,6 +61,7 @@
                    password = password.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                    document.getElementById("pw_out").value = password;
                    document.getElementById("pw_out_e").value = password;
+                   en_pw();
 
                  }else{
                    //Error?
@@ -97,14 +94,10 @@
                 <input class="form-control" type="text" placeholder="Please click generate below..." readonly id="pw_out"><br>
 
                 <input class="form-control" type="hidden" id="pw_out_e" name="content" value="test">
-	              <input class="form-control" type="hidden" id="contenttype" name="contenttype" value="Password">
 
                 <br>
 
-                <span id="pw_gen" name="pw_gen" type="pw_gen" class="btn btn-success" onclick="pw_generate();" type="button"> 1 Generate</span> <br><br>
-                <label for="content">Give your new entry a title:</label>
-                <input class="form-control" id="title" name="title"> </br>
-                <button id="pw_save" name="pw_save" type="pw_save" class="btn btn-success" type="submit"> 2 Save</button>
+                <span id="pw_gen" name="pw_gen" type="pw_gen" class="btn btn-success" onclick="pw_generate();" type="button"> 1 Generate</span>
               </form>
             </div>
           </div>
@@ -175,6 +168,7 @@
                    ).then(function(exportedPrivateKey) {
                      var pem = toPem(exportedPrivateKey);
                      document.getElementById("sk").value = pem;
+                     document.getElementById("content2").value = document.getElementById("sk").value;
                    }).catch(function(err) {
                      document.getElementById("sk").value = "Error!";
                    });
@@ -184,10 +178,18 @@
                    ).then(function(exportedPublicKey) {
                      var pem = toPemP(exportedPublicKey);
                      document.getElementById("pk").value = pem;
+                     document.getElementById("content").value = document.getElementById("pk").value;
+                     document.getElementById("contenttype").value = "Public Key";
+                     encrypt();
+
                    }).catch(function(err) {
                      document.getElementById("pk").value = err;
                    });
                  });
+                 
+                 
+
+                 en_kp();
                }
               </script>
 
@@ -202,7 +204,6 @@
               <p> Public Key : </p>
               <textarea class="form-control" type="text" placeholder="Please click generate below..." readonly id="pk"></textarea> <br>
               <button id="a_gen" name="a_gen" type="a_gen" class="btn btn-success" onclick="a_generate();"> 1 Generate</button>
-              <button id="a_save" name="a_save" type="a_save" class="btn btn-success"> 2 Save</button>
             </div>
           </div>
         </div>
@@ -227,6 +228,7 @@
 
                                  console.error(keydata);
                                  document.getElementById("aes_key").value = keydata['k'];
+                                 en_sk();
                                })
                                .catch(function(err){
                                  console.error(err);
@@ -244,50 +246,61 @@
               <p> Key : </p>
               <input class="form-control" type="text" placeholder="Please click generate below..." readonly id="aes_key"><br>
               <button id="s_gen" name="s_gen" type="s_gen" class="btn btn-success" onclick="s_generate();"> 1 Generate</button>
-              <button id="s_save" name="s_save" type="s_save" class="btn btn-success"> 2 Save</button>
             </div>
           </div>
         </div>
       </div>
+        <form name="addcont" cla/upanel.phpss="form-horizontal" action="do-add-entry.php" method="post">
+          <fieldset>
+            <div class="form-group">
+          <label for="content">2 Enter a title for your new entry:</label>
+              <input class="form-control" id="title" name="title" required=""> </br>
 
+          <select id="contenttype" name="contenttype" class="form-control" style="display:none;" >
+	              <option selected>Password</option>
+	              <option>Public Key</option>
+	              <option>Private Key</option>
+	              <option>Symmetric Key</option>
+	            </select> <br>
+          <label for="content" style="display:none;">Content</label>
+          <textarea class="form-control" id="content" rows="3" onchange="encrypt();"></textarea>
+          <textarea class="form-control" id="content2" rows="3" onchange="encrypt();"></textarea>
 
+          <textarea id="key" rows="4" style="display:none;"></textarea>
+          <input id="encrypted" name="content" >
+          <input id="encrypted_2" name="content2" >
+          <input id="encrypted_ctr" name="ctr" >
+              <div class="controls">
+                <button id="submit" name="submit" type="submit" value="submit" class="btn btn-primary">3 Submit</button>
+              </div>
 
-
-
-
-
-
-
-      <form name="addcont" class="form-horizontal" action="do-add-entry.php"
-            method="post">
-        <fieldset>
-          <div class="form-group">
-	          <label for="contenttype">State</label>
-            <label for="content">Entry Title</label>
-            <input class="form-control" id="title" name="title"> </br>
-
-	          <select id="contenttype" name="contenttype" class="form-control">
-	            <option selected>Password</option>
-	            <option>Public Key</option>
-	            <option>Private Key</option>
-	            <option>Symmetric Key</option>
-	          </select> <br>
-            <label for="content">Content</label>
-            <textarea class="form-control" id="content" name="content" rows="3"></textarea> </br>
-            <div class="controls">
-              <button id="submit" name="submit" type="submit" value="submit" class="btn btn-primary">Submit</button>
-              <button id="generate" name="generate" class="btn btn-success">Generate New</button>
             </div>
+          </fieldset>
+        </form>
 
+     </div>
+
+
+
+
+
+          <!-- Modal -->
+          <div class="modal fade" id="keymodal" tabindex="-1" role="dialog" aria-labelledby="keyModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+          <div class="modal-content">
+          <div class="modal-header">
+          <h5 class="modal-title" id="keymodalLabel">Decryption Key</h5>
           </div>
-        </fieldset>
-      </form>
-    </div>
-
-
-
-
-
+          <div class="modal-body">
+          Your decryption key is not set for the current session. You need to set it every time you log in. This key is used to encrypt your entries before they are sent to the server. <br> DO NOT LOSE THIS PASSPHRASE! You can not restore your entries without it!</br>
+          </div>
+          <div class="modal-footer">
+          <input id="passphrase" type="password" placeholder="passphrase" class="input-medium" required="">
+          <button type="button" class="btn btn-primary" onclick="setC()">Set</button>
+          </div>
+          </div>
+          </div>
+          </div>
 
     <div style="position:absolute;top:0;right:0;">      
       <button onclick="window.location.href = 
@@ -298,12 +311,125 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="js/jsbn.js"></script>
-    <script language="JavaScript" type="text/javascript" src="js/random.js"></script>
-    <script language="JavaScript" type="text/javascript" src="js/hash.js"></script>
-    <script language="JavaScript" type="text/javascript" src="js/rsa.js"></script>
-    <script language="JavaScript" type="text/javascript" src="js/aes.js"></script>
-    <script language="JavaScript" type="text/javascript" src="js/api.js"></script>
+    <script>
+     var offline_key = getCookie('sscm_offline_key');
+     if (!offline_key) {
+       $('#keymodal').modal('show');
+     } else {
+       // Cookie exists => import key from it.
+      document.getElementById("key").value = offline_key;
+      //impEncKey(offline_key);
+     }
+
+     // If we have a key in cookie:
+     // Import!
+     async function impEncKey(key) {
+       var key_json = JSON.parse('{"alg":"A256CTR","ext":true,"k":"'+key+'","key_ops":["encrypt","decrypt"],"kty":"oct"}');
+       var offline_key_obj = await crypto.subtle.importKey('jwk', key_json, { name: 'AES-CTR', length: 256 }, true, ['encrypt','decrypt']);
+       return offline_key_obj;
+      }
+     // If we have no key in cookie yet:
+     // Generate key from password
+     // From https://webbjocke.com/javascript-web-encryption-and-hashing-with-the-crypto-api/
+     async function genEncryptionKey (password, mode, length) {
+       var algo = {
+         name: 'PBKDF2',
+         hash: 'SHA-256',
+         salt: new TextEncoder().encode('decrkey'),
+         iterations: 10
+       };
+       var derived = { name: mode, length: length };
+       var encoded = new TextEncoder().encode(password);
+       var key = await crypto.subtle.importKey('raw', encoded, { name: 'PBKDF2' }, true, ['deriveKey']);
+       crypto.subtle.deriveKey(algo, key, derived, true, ['encrypt', 'decrypt'])
+             .then(function(dkey){
+               window.crypto.subtle.exportKey("jwk", dkey)
+                     .then(function(keydata){
+                       setCookie('sscm_offline_key',keydata['k'], 1);
+                       $('#keymodal').modal('hide');
+                       console.error(keydata);
+                       console.error(JSON.stringify(keydata));
+                       location.reload(); 
+                     })
+                     .catch(function(err){
+                       console.error(err);
+                     });
+             });
+     }
+
+     function setC(){ // Set cookie for offline key storage
+       var passphrase = document.getElementById("passphrase").value;
+       genEncryptionKey(passphrase, 'AES-CTR', 256);
+     }
+
+      function buf2hex(r){return Array.prototype.map.call(new Uint8Array(r),r=>("00"+r.toString(16)).slice(-2)).join("")}
+     function hex2buf(e){const n=[];for(let r=0;r<e.length;r+=2)n.push(Number.parseInt(e.slice(r,r+2),16));return new Uint8Array(n)}
+
+     async function encrypt() {
+       const privKey = await impEncKey(offline_key);
+       console.error(privKey);
+       var plaintext = document.getElementById("content").value;
+       var ctrarray = new Uint8Array(16);
+       window.crypto.getRandomValues(ctrarray);
+       console.error(ctrarray);
+       var ciphertext = await crypto.subtle.encrypt(
+           {name: "AES-CTR", counter: ctrarray, length: 128},
+           privKey,
+           new TextEncoder("utf-8").encode(plaintext));
+       console.error(ciphertext);
+       document.getElementById("encrypted").value = buf2hex(ciphertext);
+       document.getElementById("encrypted_ctr").value = buf2hex(ctrarray);
+
+       var plaintext2 = document.getElementById("content2").value;
+       if (content2 != '') {
+         var ciphertext2 = await crypto.subtle.encrypt(
+           {name: "AES-CTR", counter: ctrarray, length: 128},
+           privKey,
+           new TextEncoder("utf-8").encode(plaintext2));
+         document.getElementById("encrypted_2").value = buf2hex(ciphertext2);
+
+       }
+
+     }
+
+     async function decrypt() {
+       const privKey = await impEncKey(offline_key);
+       console.error(privKey);
+       var ciphertext = document.getElementById("encrypted").value;
+       //convert to buffer
+       var s = document.getElementById("encrypted_ctr").value;
+       //var temp = [];
+       //for(var i = 0; i < s.length; i+=2) {
+       //  temp.push(parseInt(s.substring(i, i + 2), 16));
+       //}
+       var ctrarray = Uint8Array.from(hex2buf(s));
+       console.error(ctrarray);
+       var plaintext = await crypto.subtle.decrypt(
+         {name: "AES-CTR", counter: ctrarray, length: 128},
+         privKey,
+         hex2buf(ciphertext));
+       console.error(plaintext);
+       document.getElementById("decrypted").value = new TextDecoder("utf-8").decode(plaintext);
+     }
+    
+     function en_pw() {
+       document.getElementById("content").value = document.getElementById("pw_out").value;
+       document.getElementById("contenttype").value = "Password";
+       encrypt();
+     }
+
+    
+      function en_sk() {
+        document.getElementById("content").value = document.getElementById("aes_key").value;
+        document.getElementById("contenttype").value = "Symmetric Key";
+      encrypt();
+      }
+      
+
+
+
+    </script>
+
 
 
   </body>

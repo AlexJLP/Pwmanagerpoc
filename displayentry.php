@@ -8,6 +8,7 @@
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
 
+    <script src="js/localcookie.js"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -35,21 +36,19 @@
 
 
 <?php
-    if (isset($_COOKIE['username'], $_COOKIE['session']))
+    if (isset($_COOKIE['username']))
     {
-        if (check_token($_COOKIE['username'], $_COOKIE['session']))
-        {$username = $_COOKIE['username']; }
-    else {$username = "NULL";}
-    //echo $username;
+         $username = $_SESSION['uname'];
+    }
+
     $content = filter($_GET["cid"]);
     $result = get_entry($username, $content);
     echo $result['2'], '</h2>';
     echo '<br>Type: ', $result['1'];
     echo '<br> <button onclick="decrypt();" class="btn btn-success">Click here to reveal</button>';
-    echo '<br>Decrypted:<br> <textarea readonly id="decrypted">Please press reveal above..</textarea><br>';
-    echo '<br>Encrypted:<br> <textarea readonly id="encrypted">',  $result['3'], '</textarea><br>';
-    echo '<br>Ctr:<br> <textarea readonly id="ctr">',  $result['4'], '</textarea><br><br>';
-    }
+    echo '<br>Decrypted:<br> <textarea readonly id="decrypted" class="form-control">Please press reveal above..</textarea><br>';
+echo '<textarea readonly id="encrypted" style="display:none;">',  $result['3'], '</textarea><br>';
+echo '<textarea readonly id="ctr" style="display:none;" >',  $result['4'], '</textarea><br><br>';
 ?>
 
 
@@ -70,6 +69,25 @@
 <button onclick="window.location.href = 'logout.php';">LOGOUT</button>
 <button onclick="window.location.href = 'upanel.php';">User Panel</button>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="keymodal" tabindex="-1" role="dialog" aria-labelledby="keyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="keymodalLabel">Decryption Key</h5>
+          </div>
+          <div class="modal-body">
+          Your decryption key is not set for the current session. You need to set it every time you log in. This key is used to encrypt your entries before they are sent to the server. <br> DO NOT LOSE THIS PASSPHRASE! You can not restore your entries without it!</br>
+            </div>
+            <div class="modal-footer">
+              <input id="passphrase" type="password" placeholder="passphrase" class="input-medium" required="">
+              <button type="button" class="btn btn-primary" onclick="setC()">Set</button>
+              </div>
+              </div>
+              </div>
+              </div>
+
+
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>

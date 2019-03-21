@@ -29,12 +29,11 @@
     <h2>Storage<h2>
 
     <ul class="list-group">
-    <?php
-        if (isset($_COOKIE['username'], $_COOKIE['session']))
+<?php
+
+        if (isset($_COOKIE['username']))
         {
-            if (check_token($_COOKIE['username'], $_COOKIE['session']))
-            {$username = $_COOKIE['username']; }
-         else {$username = "NULL";}
+         $username = $_SESSION['uname'];
          //echo $username;
         $results = get_content($username);
         foreach($results as $result) {
@@ -44,7 +43,8 @@
     }
 ?>
 
-  <li class="list-group-item"><a href="add-entry.php">+ Add new item</a></li>
+  <li class="list-group-item"><a href="add-entry.php">+ Add new item (manual entry)</a></li>
+  <li class="list-group-item"><a href="generate-entry.php">+ Add new item (generate)</a></li>
 </ul>
     </div>
 
